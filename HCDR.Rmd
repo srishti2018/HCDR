@@ -9,6 +9,7 @@ output: html_document
 ```{r}
 #Loading required packages
 library(tidyverse)
+library(broom)
 library(ggplot2)
 library(ggalt)
 library(treemapify)
@@ -22,6 +23,7 @@ library(zoo)
 ## Reading Data
 ```{r}
 #Reading data files
+setwd("data")
 train <- read.csv("application_test.csv")
 test <- read.csv("application_train.csv")
 bureau <- read.csv("bureau.csv")
@@ -35,7 +37,11 @@ sample_submission <- read.csv("sample_submission.csv")
 
 ##Merging Data 
 ```{r}
-#df_all <- bind_rows(bureau, bureau_balance, cc_balance, installments_payments, pos_cash_balance, previous_application, sample_submission)
+df_all <- bind_rows(bureau, bureau_balance, cc_balance, installments_payments, pos_cash_balance, previous_application, sample_submission)
+```
+
+```{r}
+
 ```
 
 #Data Munging
@@ -61,11 +67,28 @@ plot_demographics<- train_munge %>%
   geom_smooth(method = "loess", se=F) +
   labs (subtitle = "Income vs. Education",
         y = "Total Income",
-        x = "Education Level") +
+        x = "Education Level") 
 
 plot_demographics
 
 ```
+
+```{r}
+matrix_sp <- train_munge %>%
+  select(AMT_INCOME_TOTAL, AMT_CREDIT, AMT_ANNUITY)
+pairs(matrix_sp)
+```
+```{r}
+lm_1 <- lm(train_munge$AMT_CREDIT + train_munge$AMT_INCOME_TOTAL + train_munge$AMT_GOODS_PRICE ~ train_munge$AMT_ANNUITY)
+glance(lm_1)
+
+```
+
+```{r}
+#Logistic Regression
+
+```
+
 
 ## ASSETS : Car, Realty
 ```{r}
