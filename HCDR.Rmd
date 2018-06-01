@@ -1,0 +1,104 @@
+---
+title: "Home Credit Default Risk"
+author: "Srishti Sinha"
+date: "May 27, 2018"
+output: html_document
+---
+
+#Importing Libraries
+```{r}
+#Loading required packages
+library(tidyverse)
+library(ggplot2)
+library(ggalt)
+library(treemapify)
+library(plyr)
+library(scales)
+library(zoo)
+```
+
+#Data Acquistion
+
+## Reading Data
+```{r}
+#Reading data files
+train <- read.csv("application_test.csv")
+test <- read.csv("application_train.csv")
+bureau <- read.csv("bureau.csv")
+bureau_balance <- read.csv("bureau_balance.csv")
+cc_balance <- read.csv("credit_card_balance.csv")
+installments_payments <- read.csv("installments_payments.csv")
+pos_cash_balance <- read.csv("POS_CASH_balance.csv")
+previous_application <- read.csv("previous_application.csv")
+sample_submission <- read.csv("sample_submission.csv")
+```
+
+##Merging Data 
+```{r}
+#df_all <- bind_rows(bureau, bureau_balance, cc_balance, installments_payments, pos_cash_balance, previous_application, sample_submission)
+```
+
+#Data Munging
+```{r}
+train_munge <- train %>%
+  mutate(CNT_CHILDREN_factor = factor(CNT_CHILDREN))
+```
+
+#Exploratory Data Analysis
+```{r}
+summary(train_munge)
+```
+
+##CLIENT DEMOGRAPHICS : Gender, Age, No. of children, Income type, Education level
+```{r}
+#Cliet Demographics
+options(scipen=999) #turns off scientific notation
+theme_set(theme_bw()) #pre-set the bw theme
+
+plot_demographics<- train_munge %>%
+  ggplot(aes(x=NAME_EDUCATION_TYPE,y=AMT_INCOME_TOTAL, z=AMT_CREDIT)) +
+  geom_point(aes(col=CODE_GENDER, size=DAYS_BIRTH)) +
+  geom_smooth(method = "loess", se=F) +
+  labs (subtitle = "Income vs. Education",
+        y = "Total Income",
+        x = "Education Level") +
+
+plot_demographics
+
+```
+
+## ASSETS : Car, Realty
+```{r}
+car_table1 <- train_munge %>%
+  group_by(FLAG_OWN_CAR) %>%
+  summarize(total = n()) %>%
+  mutate(pct = total/sum(total))
+car_table1
+```
+
+## CREDIT INFORMATION : Total income, Credit, Annuity, 
+```{r}
+plot_income_type <- train_munge %>%
+  ggplot(aes(NAME_INCOME_TYPE, AMT_CREDIT)) +
+  geom_boxplot(varwidth = T, fill = "green") +
+  labs(title = "Box Plot",
+       subtitle = "Credit Amount by Income type",
+       x = "Income Type Group",
+       y = "Credit Amount")
+plot_income_type
+```
+
+## HOUSING INFORMATION
+```{r}
+# Tree maping Housing Type 
+treeMapCoordinates <- train_munge %>%
+  treemapify(area="AMT_ANNUITY", fill="NAME_HOUSING_TYPE", label = "NAME_TYPE_SUITE", group = "NAME_HOUSING_TYPE")
+
+treeMapPlot <- ggplotify(treeMapCoordinates) +
+  scale_x_continuous((expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_fill_brewer(palette = "Dark2"))
+
+print(treeMapPlot)
+```
+
